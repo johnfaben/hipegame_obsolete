@@ -1,0 +1,9 @@
+Dear {{ user.nickname }},
+
+{{ follower.nickname }} is now a follower. Click on the link below to visit their page.
+
+{{ url_for('user', nickname = follower.nickname, _external = True) }}
+
+Regards, 
+
+Flasky admin

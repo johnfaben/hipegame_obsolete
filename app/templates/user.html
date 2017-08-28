@@ -16,7 +16,7 @@
           {% elif not g.user.is_following(user) %}
           <a href="{{ url_for('follow',nickname = user.nickname) }}">Follow</a></p>
           {% else %}
-          <a href="{{ url_for('unfollow',nickname = user.nickname) }}">Follow</a></p>
+          <a href="{{ url_for('unfollow',nickname = user.nickname) }}">Unfollow</a></p>
           {% endif %}
           </p>
 

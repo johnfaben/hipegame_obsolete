@@ -1,10 +1,12 @@
-from app import app,db,oid,lm
+from app import app,db,oid,lm,mail
 from flask import render_template,flash,redirect,session,url_for,request,g
 from .forms import LoginForm,EditForm,PostForm
 from flask_login import login_user,logout_user,current_user,login_required
 from .models import User,Post
 from datetime import datetime
+from flask_mail import Message
 from config import POSTS_PER_PAGE
+from email import follower_notification
 
 
 @lm.user_loader
@@ -116,6 +118,7 @@ def follow(nickname):
         return redirect(url_for('user',nickname = nickname))
     db.session.add(u)
     db.session.commit()
+    follower_notification(user, g.user)
     flash('You are now following %s!' %nickname)
     return redirect(url_for('user',nickname = nickname))
 
