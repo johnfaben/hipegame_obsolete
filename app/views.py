@@ -1,9 +1,10 @@
 from app import app,db,oid,lm
 from flask import render_template,flash,redirect,session,url_for,request,g
-from .forms import LoginForm,EditForm
+from .forms import LoginForm,EditForm,PostForm
 from flask_login import login_user,logout_user,current_user,login_required
-from .models import User
+from .models import User,Post
 from datetime import datetime
+from config import POSTS_PER_PAGE
 
 
 @lm.user_loader
@@ -19,26 +20,26 @@ def before_request():
         db.session.commit()
 
 
-@app.route('/')
-@app.route('/index')
+@app.route('/', methods =['GET','POST'])
+@app.route('/index', methods =['GET','POST'])
+@app.route('/index/<int:page>', methods =['GET','POST'])
 @login_required
-def index():
+def index(page=1):
     user = g.user 
-    posts = [
-        {
-            'author':{'nickname':'Doug'},
-            'body': 'Hitch-hikers Guide'
-        },
-         {
-             'author':{'nickname':'Terry'},
-             'body': 'Color of Magic'
-        }
-         ]
-   
+    posts = g.user.followed_posts().paginate(page, POSTS_PER_PAGE, False)
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(body = form.post.data, timestamp = datetime.utcnow(), author = g.user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Post submitted')
+        return redirect(url_for('index'))
+       
     return render_template('index.html',
             title = 'Home',
             user = user,
-            posts = posts)
+            posts = posts,
+            form = form)
 
 @app.route('/login',methods = ['GET','POST'])
 @oid.loginhandler
@@ -71,6 +72,8 @@ def after_login(resp):
         user = User(nickname = nickname, email = resp.email)
         db.session.add(user)
         db.session.commit()
+        db.session.add(user.follow(user))
+        db.session.commit()
     remember_me = False
     if 'remember_me' in session:
         remember_me = session['remember_me']
@@ -84,20 +87,59 @@ def logout():
     return redirect(url_for('index'))
 
 @app.route('/user/<nickname>')
+@app.route('/user/<nickname>/<int:page>')
 @login_required
-def user(nickname):
+def user(nickname,page=1):
     user = User.query.filter_by(nickname=nickname).first()
     if user == None:
         flash('User %s not found.' %nickname)
         return redirect(url_for('index'))
-    posts = [
-        {'author': user, 'body': 'Once upon a midnight dreary'},
-        {'author': user, 'body': 'When the clock struck 13'}
-        ]
+    posts = Post.query.filter_by(user_id = user.id).paginate(page, POSTS_PER_PAGE, False)
     return render_template('user.html',
             user = user,
             posts = posts)
-                
+
+@app.route('/follow/<nickname>')
+@login_required
+def follow(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    if user == None:
+        flash('User %s not found.' %nickname)
+        return redirect(url_for('index'))
+    if user == g.user:
+        flash('Stop following yourself!')
+        return redirect(url_for('user',nickname = nickname))
+
+    u = g.user.follow(user)
+    if u is None:
+        flash('Cannot follow %s right now. Are you already following them?' %nickname)
+        return redirect(url_for('user',nickname = nickname))
+    db.session.add(u)
+    db.session.commit()
+    flash('You are now following %s!' %nickname)
+    return redirect(url_for('user',nickname = nickname))
+
+@app.route('/unfollow/<nickname>')
+@login_required
+def unfollow(nickname):
+    user = User.query.filter_by(nickname=nickname).first()
+    if user == None:
+        flash('User %s not found.' %nickname)
+        return redirect(url_for('index'))
+    if user == g.user:
+        flash('You cannot unfollow yourself.')
+        return redirect(url_for('user',nickname = nickname))
+    u = g.user.unfollow(user)
+    if u is None:
+        flash('Cannot unfollow %s right now. Are you sure you are following them?' %nickname)
+        return redirect(url_for('user',nickname = g.user.nickname))
+    db.session.add(u)
+    db.session.commit()
+    flash('You are no longer following %s!' %nickname)
+    return redirect(url_for('user',nickname = nickname))
+
+
+
 
 @app.route('/edit', methods=['GET','POST'])
 @login_required

@@ -20,5 +20,9 @@ MAIL_PORT = 25
 MAIL_USERNAME = None
 MAIL_PASSWORD = None
 
+#pagination
+POSTS_PER_PAGE = 3
+
+
 # admin list
 ADMINS = ['jdfaben@gmail.com']
