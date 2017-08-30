@@ -1,10 +1,8 @@
-<!-- extends base layout -->
-
+<!-- extend base layout -->
 {% extends "base.html" %}
 
-{% block content %} 
-  <h1>I'm sorry Dave, I'm afraid I can't do that</h1>
-  <p><img src='https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Red_camera_eye.svg/800px-Red_camera_eye.svg.png'></p>
-  <p><a href="{{ url_for('index') }}">Go to home page</a></p>
-
+{% block content %}
+    <h1>An unexpected error has occurred</h1>
+    <p>The administrator has been notified. Sorry for the inconvenience!</p>
+    <p><a href="{{ url_for('index') }}">Back</a></p>
 {% endblock %}

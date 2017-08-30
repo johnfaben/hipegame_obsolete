@@ -41,7 +41,8 @@ def index(page=1):
             title = 'Home',
             user = user,
             posts = posts,
-            form = form)
+            form = form,
+            current_page = 'index')
 
 @app.route('/login',methods = ['GET','POST'])
 @oid.loginhandler
@@ -99,7 +100,8 @@ def user(nickname,page=1):
     posts = Post.query.filter_by(user_id = user.id).paginate(page, POSTS_PER_PAGE, False)
     return render_template('user.html',
             user = user,
-            posts = posts)
+            posts = posts,
+            current_page = 'user')
 
 @app.route('/follow/<nickname>')
 @login_required

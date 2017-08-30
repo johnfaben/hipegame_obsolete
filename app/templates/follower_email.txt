@@ -1,9 +1,9 @@
 Dear {{ user.nickname }},
 
-{{ follower.nickname }} is now a follower. Click on the link below to visit their page.
+{{ follower.nickname }} is now a follower. Click on the following link to visit {{ follower.nickname }}'s profile page:
 
-{{ url_for('user', nickname = follower.nickname, _external = True) }}
+{{ url_for("user", nickname=follower.nickname, _external=True) }}
 
-Regards, 
+Regards,
 
-Flasky admin
+The microblog admin
