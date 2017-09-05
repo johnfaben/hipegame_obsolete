@@ -1,0 +1,25 @@
+<!-- extend base layout -->
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class = "jumbotron">
+    <p class = "lead">Can you find a word that contains the following letters?</p>
+    <hr class = "my-4">
+    <h1 class = "display-3">{{hipe.letters}}</h1>
+    <hr class = "my-4">
+    <form method = "post" name="answer_form">
+        {{ form.hidden_tag() }}
+        <div class = "form-group{% if form.answer.errors %} error{% endif %}">
+            <label for="answer"></label>
+                <div class="controls">
+                    {{ form.answer(maxlength=26, class="span4") }}
+                    {% for error in form.answer.errors %}
+                        <span class="help-inline">[{{ error }}]</span><br>
+                    {% endfor %}
+                </div>
+        </div>
+        <button type="submit" class"btn btn-primary">Submit</button>
+    </form>
+
+{% endblock %}

@@ -1,8 +1,8 @@
 from app import app,db,oid,lm,mail
 from flask import render_template,flash,redirect,session,url_for,request,g
-from .forms import LoginForm,EditForm,PostForm
+from .forms import LoginForm,EditForm,PostForm,AnswerForm
 from flask_login import login_user,logout_user,current_user,login_required
-from .models import User,Post
+from .models import User,Post,Hipe,Answer
 from datetime import datetime
 from flask_mail import Message
 from config import POSTS_PER_PAGE
@@ -161,6 +161,34 @@ def edit():
         form.nickname.data = g.user.nickname
         form.about_me.data = g.user.about_me
     return render_template('edit.html',form=form)
+
+@app.route('/hipe/<letters>', methods = ['GET','POST'])
+@login_required
+def hipe(letters): 
+    hipe = Hipe.query.filter_by(letters = letters.lower()).first()
+    if hipe == None:
+        flash('We do not have %s as a HIPE at the moment. Should we?' %letters)
+        return redirect(url_for('index'))
+    form = AnswerForm(hipe)
+    if form.validate_on_submit():
+        flash('Well done!')
+        return redirect(url_for('answer',letters=letters))
+    return render_template('hipe.html',
+            form = form,
+            hipe = hipe)
+
+@app.route('/answer/<letters>', methods = ['GET','POST'])
+@login_required
+def answer(letters): 
+    hipe = Hipe.query.filter_by(letters = letters.lower()).first()
+    if hipe == None:
+        flash('We do not have %s as a HIPE at the moment. Should we?' %letters)
+        return redirect(url_for('index'))
+    answers = Answer.query.filter_by(hipe_id = hipe.id)
+    return render_template('answer.html',
+            hipe = hipe,
+            answers = answers)
+
 
 @app.errorhandler(404)
 def not_found_error(error):

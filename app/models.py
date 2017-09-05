@@ -83,4 +83,15 @@ class Post(db.Model):
     def __repr__(self):
         return '<%r>' %self.body
 
+class Hipe(db.Model):
+    id = db.Column(db.Integer, primary_key= True)
+    letters = db.Column(db.String(4))
+    answers = db.relationship('Answer', backref = 'hipe', lazy = 'dynamic')
+
+
+    
+class Answer(db.Model):
+    id = db.Column(db.Integer, primary_key= True)
+    answer = db.Column(db.String(20))
+    hipe_id = db.Column(db.Integer, db.ForeignKey('hipe.id'))
 
