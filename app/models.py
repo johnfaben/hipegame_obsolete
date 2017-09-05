@@ -1,10 +1,14 @@
 from app import db
 from hashlib import md5
+from sqlalchemy.sql import func
 
 followers = db.Table('followers',
         db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
         db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
         )
+
+def random_hipe():
+    return Hipe.query.order_by(func.random()).first()
 
 
 class User(db.Model):

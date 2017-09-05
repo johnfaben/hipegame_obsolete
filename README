@@ -1,5 +1,5 @@
-This is a direct copy of the code from Miguel Grinberg's Flask tutorial. 
+The code for this project is heavily based of Miguel Grinberg's Flask tutorial (http://blog.miguelgrinberg.com). 
 
-The original tutorial is at https://blog.grinberg.com/post/the-flask-mega-tutorial.
+It is an implementation of the game of HIPE, which appears in a bonus chapter in Peter Winkler's excellent book 'Mathematical Puzzles: a Connoisseur's Collection'. If you like mathematical puzzles, that book is the best one I've read by some margina, and I've read a lot.
 
-At the moment I'm just typing it exactly as in the tutorial, but I imagine my version will be different from his at some point.
+This is mostly a project for me to learn something about Flask and how to host some simple python scripts so they run online, but it might be a fun game too when I've finished.

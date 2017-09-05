@@ -2,7 +2,7 @@ from app import app,db,oid,lm,mail
 from flask import render_template,flash,redirect,session,url_for,request,g
 from .forms import LoginForm,EditForm,PostForm,AnswerForm
 from flask_login import login_user,logout_user,current_user,login_required
-from .models import User,Post,Hipe,Answer
+from .models import User,Post,Hipe,Answer,random_hipe
 from datetime import datetime
 from flask_mail import Message
 from config import POSTS_PER_PAGE
@@ -188,6 +188,12 @@ def answer(letters):
     return render_template('answer.html',
             hipe = hipe,
             answers = answers)
+
+@app.route('/random')
+@login_required
+def random():
+    hipe = random_hipe() 
+    return redirect(url_for('hipe',letters = hipe.letters))
 
 
 @app.errorhandler(404)
