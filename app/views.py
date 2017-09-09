@@ -97,10 +97,10 @@ def user(nickname,page=1):
     if user == None:
         flash('User %s not found.' %nickname)
         return redirect(url_for('index'))
-    posts = Post.query.filter_by(user_id = user.id).paginate(page, POSTS_PER_PAGE, False)
+    hipes = user.solved.paginate(page, POSTS_PER_PAGE, False)
     return render_template('user.html',
             user = user,
-            posts = posts,
+            hipes = hipes,
             current_page = 'user')
 
 @app.route('/follow/<nickname>')
@@ -172,6 +172,9 @@ def hipe(letters):
     form = AnswerForm(hipe)
     if form.validate_on_submit():
         flash('Well done!')
+        if not hipe in g.user.solved: 
+            db.session.add(g.user.solve(hipe))
+            db.session.commit()
         return redirect(url_for('answer',letters=letters))
     return render_template('hipe.html',
             form = form,
@@ -184,6 +187,9 @@ def answer(letters):
     if hipe == None:
         flash('We do not have %s as a HIPE at the moment. Should we?' %letters)
         return redirect(url_for('index'))
+    if not g.user.has_solved(hipe):
+        flash('You have not solved that HIPE yet. No peeking!')
+        return redirect(url_for('hipe',letters = letters))
     answers = Answer.query.filter_by(hipe_id = hipe.id)
     return render_template('answer.html',
             hipe = hipe,

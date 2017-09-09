@@ -18,21 +18,22 @@
             <a href="{{url_for('unfollow', nickname=user.nickname)}}" class = "btn btn-primary">Unfollow</a>
         {% endif %}
          </div>
-    </div>
-    {% for post in posts.items %}
-        {% include 'post.html' %}
-    {% endfor %}
+     </div>
+
+{% for hipe in hipes.items %}
+{{hipe.letters}}
+{% endfor %}
 
 <ul class="pagination">
-    {% if posts.has_prev %}
-    <li class="page-item"><a class ="page-link" href="{{ url_for('user', nickname = user.nickname, page=posts.prev_num) }}">Newer posts</a></li>
+    {% if hipes.has_prev %}
+    <li class="page-item"><a class ="page-link" href="{{ url_for('user', nickname = user.nickname, page=hipes.prev_num) }}">Newer hipes</a></li>
     {% else %}
-    <li class="page-item disabled"><a class = "page-link" href="#">Newer posts</a></li>
+    <li class="page-item disabled"><a class = "page-link" href="#">Newer hipes</a></li>
     {% endif %}
-    {% if posts.has_next %}
-    <li class="page-item"><a class = "page-link" href="{{ url_for('user', nickname = user.nickname, page=posts.next_num) }}">Older posts</a></li>
+    {% if hipes.has_next %}
+    <li class="page-item"><a class = "page-link" href="{{ url_for('user', nickname = user.nickname, page=hipes.next_num) }}">Older hipes</a></li>
     {% else %}
-    <li class="page-item disabled"><a class = "page-link" href="#">Older posts</a></li>
+    <li class="page-item disabled"><a class = "page-link" href="#">Older hipes</a></li>
     {% endif %}
 </ul>
 
