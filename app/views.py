@@ -7,6 +7,7 @@ from datetime import datetime
 from flask_mail import Message
 from config import POSTS_PER_PAGE
 from email import follower_notification
+from oauth import OAuthSignIn
 
 
 @lm.user_loader
@@ -200,6 +201,17 @@ def answer(letters):
 def random():
     hipe = random_hipe() 
     return redirect(url_for('hipe',letters = hipe.letters))
+
+
+@app.route('/authorize/<provider>')
+def oauth_authorize(provider):
+    if not current_user.is_anonymous:
+        return redirect(url_for('index'))
+    oauth = OAuthSignIn.get_provider(provider)
+    return oauth.authorize()
+
+
+
 
 
 @app.errorhandler(404)

@@ -9,20 +9,23 @@
             <h4 class = "card-title">{{ user.nickname }}</h4>
             <h6 class = "card-subtitle">Last seen: {{ user.last_seen }} </h6>
             {% if user.about_me %}<p class = "card-text">{{ user.about_me }}</p> {% endif %}
-            <p>Followers: {{ user.followers.count() - 1 }} | Following: {{ user.followed.count() - 1 }} |
             {% if user.id == g.user.id %}
             <a href="{{url_for('edit')}}" class = "btn btn-primary">Edit your profile</a>
-            {% elif not g.user.is_following(user) %}
-            <a href="{{url_for('follow', nickname=user.nickname)}}" class = "btn btn-primary">Follow</a>
-        {% else %}
-            <a href="{{url_for('unfollow', nickname=user.nickname)}}" class = "btn btn-primary">Unfollow</a>
-        {% endif %}
+            {% endif %}
          </div>
      </div>
 
-{% for hipe in hipes.items %}
-{{hipe.letters}}
-{% endfor %}
+     <div class = "card">
+         <div class = "card-block">
+             <h4 class = "card-title">Here are the HIPEs you've solved</h4>
+         {% for hipe in hipes.items %}
+         <p class = "card-text">
+
+         <a href = "{{url_for('answer',letters=hipe.letters)}}">{{hipe.letters.upper()}}</a>
+         </p>
+         {% endfor %}
+     </div>
+     
 
 <ul class="pagination">
     {% if hipes.has_prev %}
@@ -36,5 +39,6 @@
     <li class="page-item disabled"><a class = "page-link" href="#">Older hipes</a></li>
     {% endif %}
 </ul>
+</div>
 
 {% endblock %}

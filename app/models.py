@@ -1,6 +1,7 @@
 from app import db
 from hashlib import md5
 from sqlalchemy.sql import func
+from flask.ext.login import UserMixin
 
 
 followers = db.Table('followers',
@@ -17,11 +18,12 @@ def random_hipe():
     return Hipe.query.order_by(func.random()).first()
 
 
-class User(db.Model):
+class User(UserMixin,db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     nickname = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
+    social_id = db.Column(db.String(64), unique = True)
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime)
@@ -38,17 +40,6 @@ class User(db.Model):
             lazy = 'dynamic'
             )
 
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
 
     def get_id(self):
         try:
@@ -74,7 +65,7 @@ class User(db.Model):
     def solve(self, hipe):
         if not self.has_solved(hipe):
             self.solved.append(hipe)
-            return self
+        return self
     
     def has_solved(self, hipe):
         return self.solved.filter(solvers.c.hipe_id == hipe.id).count()
@@ -117,9 +108,16 @@ class Hipe(db.Model):
     letters = db.Column(db.String(4))
     answers = db.relationship('Answer', backref = 'hipe', lazy = 'dynamic')
 
+    def __init__(self, letters):
+        self.letters = letters
+
+
     
 class Answer(db.Model):
     id = db.Column(db.Integer, primary_key= True)
     answer = db.Column(db.String(20))
     hipe_id = db.Column(db.Integer, db.ForeignKey('hipe.id'))
+
+    def __init__(self, word):
+        self.answer = word
 

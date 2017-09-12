@@ -35,16 +35,15 @@ class AnswerForm(FlaskForm):
         self.hipe = hipe 
 
     def validate(self):
-        #self.answer.errors.append('Just checking if I am actually showing errors when validating')
         if not FlaskForm.validate(self):
             return False
 
         letters = self.hipe.letters
-        if letters not in self.answer.data:
+        if letters not in self.answer.data.lower():
             self.answer.errors.append('The letters %s are not in the word %s, try again.' %(letters,self.answer.data))
             return False
 
-        answer = Answer.query.filter_by(answer=self.answer.data).filter_by(hipe=self.hipe).first()
+        answer = Answer.query.filter_by(answer=self.answer.data.lower()).filter_by(hipe=self.hipe).first()
         if answer != None:
             return True 
         else: 
