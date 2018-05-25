@@ -9,22 +9,15 @@ class LoginForm(FlaskForm):
 
 
 class EditForm(FlaskForm):
-    nickname = StringField('nickname', validators=[DataRequired()])
+    display_name = StringField('username', validators=[DataRequired()])
     about_me = TextAreaField('about_me',validators=[Length(min=0,max=140)])
 
-    def __init__(self, original_nickname, *args, **kwargs):
+    def __init__(self, original_display_name, *args, **kwargs):
         FlaskForm.__init__(self, *args, **kwargs)
-        self.original_nickname = original_nickname
+        self.original_display_name= original_display_name
 
     def validate(self):
         if not FlaskForm.validate(self):
-            return False
-        if self.nickname.data == self.original_nickname:
-            return True
-        user = User.query.filter_by(nickname=self.nickname.data).first()
-        if user != None:
-            suggestion = User.make_unique_nickname(self.nickname.data)
-            self.nickname.errors.append('Sorry, the nickname %s is already in use, please choose another. You could try %s.' %(self.nickname.data,suggestion))
             return False
         return True
 

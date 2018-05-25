@@ -1,11 +1,11 @@
 import random as rn
 import sys
 
-num_words_to_use = 40000
+num_words_to_use = 50000
 wordlist_filename = '/Users/faben/Dropbox/Programming/anagrams/dictionary_order.txt'
-output_filename = 'list_of_hipes.txt'
+output_filename = 'list_of_hipes'+str(num_words_to_use)+'.txt'
 hipe_length = 3
-max_matches_allowed = 2
+max_matches_allowed = 3
 
 def fetch_hipes(filename,max_matches_allowed=2,hipe_length=3):
     f = open(filename,'r')
@@ -57,7 +57,7 @@ def write_hipes(filename,max_matches_allowed = 3):
     hipes = dict()
     for i in range(2,4):
         hipes.update(fetch_hipes(filename,max_matches_allowed,i))
-    f = open('list_of_hipes.txt','w')
+    f = open(output_filename,'w')
     for hipe in hipes:
         f.write(hipe + ',' + ','.join(hipes[hipe]) + '\n')
     f.close()
@@ -89,8 +89,8 @@ def play_hipe(filename):
         
     
     
-write_hipes(wordlist_filename)
-play_hipe(wordlist_filename)   
+write_hipes(wordlist_filename,4)
+#play_hipe(wordlist_filename)   
 
         
 

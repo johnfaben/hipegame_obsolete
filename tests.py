@@ -21,16 +21,16 @@ class TestCase(unittest.TestCase):
         db.drop_all()
 
     def test_avatar(self):
-        u = User(nickname = 'dave', email = 'john@example.com')
+        u = User(username = 'dave', email = 'john@example.com')
         avatar = u.avatar(128)
         expected = 'http://www.gravatar.com/avatar/d4c74594d841139328695756648b6bd6'
         assert avatar[0:len(expected)] == expected
 
     def test_follow(self):
-        u = User(nickname = 'Alice', email = 'alice@alice.com')
-        v = User(nickname = 'Bob',email = 'bob@bob.com')
-        w = User(nickname = 'Charlie',email = 'charlie@charlie.com')
-        x = User(nickname = 'Eve', email = 'eve@eve.com')
+        u = User(username = 'Alice', email = 'alice@alice.com')
+        v = User(username = 'Bob',email = 'bob@bob.com')
+        w = User(username = 'Charlie',email = 'charlie@charlie.com')
+        x = User(username = 'Eve', email = 'eve@eve.com')
         db.session.add(u)
         db.session.add(v)
         db.session.add(w)

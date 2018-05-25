@@ -2,12 +2,12 @@ from app import app,db,oid,lm,mail
 from flask import render_template,flash,redirect,session,url_for,request,g
 from .forms import LoginForm,EditForm,PostForm,AnswerForm
 from flask_login import login_user,logout_user,current_user,login_required
-from .models import User,Post,Hipe,Answer,random_hipe
+from .models import User,Hipe,Answer,random_hipe
 from datetime import datetime
 from flask_mail import Message
 from config import POSTS_PER_PAGE
 from email import follower_notification
-from oauth import OAuthSignIn
+from oauth import OAuthSignIn,sign_in_images
 
 
 @lm.user_loader
@@ -22,27 +22,17 @@ def before_request():
         db.session.add(g.user)
         db.session.commit()
 
-
+@app.route('/static')
 @app.route('/', methods =['GET','POST'])
 @app.route('/index', methods =['GET','POST'])
 @app.route('/index/<int:page>', methods =['GET','POST'])
 @login_required
 def index(page=1):
     user = g.user 
-    posts = g.user.followed_posts().paginate(page, POSTS_PER_PAGE, False)
-    form = PostForm()
-    if form.validate_on_submit():
-        post = Post(body = form.post.data, timestamp = datetime.utcnow(), author = g.user)
-        db.session.add(post)
-        db.session.commit()
-        flash('Post submitted')
-        return redirect(url_for('index'))
        
     return render_template('index.html',
             title = 'Home',
             user = user,
-            posts = posts,
-            form = form,
             current_page = 'index')
 
 @app.route('/login',methods = ['GET','POST'])
@@ -55,12 +45,12 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         session['remember me'] = form.remember_me.data
-        return oid.try_login(form.openid.data, ask_for = ['nickname','email'])
+        return oid.try_login(form.openid.data, ask_for = ['username','email'])
     return render_template('login.html',
             title = 'Sign In',
             form = form,
-            providers = app.config['OPENID_PROVIDERS'])
-
+            providers =  ['facebook','google']
+            )
 @oid.after_login
 def after_login(resp):
     if resp.email is None or resp.email == '':
@@ -68,12 +58,12 @@ def after_login(resp):
         return redirect(url_for('login'))
     user = User.query.filter_by(email=resp.email).first()
     if user is None:
-        nickname = resp.nickname
-        if nickname is None or nickname == '':
-            nickname = resp.email.split('@')[0]
-        nickname = User.make_unique_nickname(nickname)
-        flash('Adding a user with name {}'.format(nickname))
-        user = User(nickname = nickname, email = resp.email)
+        username = resp.username
+        if username is None or username == '':
+            username = resp.email.split('@')[0]
+        username = User.make_unique_username(username)
+        flash('Adding a user with name {}'.format(username))
+        user = User(username = username, email = resp.email)
         db.session.add(user)
         db.session.commit()
         db.session.add(user.follow(user))
@@ -87,16 +77,17 @@ def after_login(resp):
 
 @app.route('/logout')
 def logout():
+    flash('you were successfully logged out, please log in again to play HIPE')
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('login'))
 
-@app.route('/user/<nickname>')
-@app.route('/user/<nickname>/<int:page>')
+@app.route('/user/<username>')
+@app.route('/user/<username>/<int:page>')
 @login_required
-def user(nickname,page=1):
-    user = User.query.filter_by(nickname=nickname).first()
+def user(username,page=1):
+    user = User.query.filter_by(username=username).first()
     if user == None:
-        flash('User %s not found.' %nickname)
+        flash('User %s not found.' %username)
         return redirect(url_for('index'))
     hipes = user.solved.paginate(page, POSTS_PER_PAGE, False)
     return render_template('user.html',
@@ -104,45 +95,45 @@ def user(nickname,page=1):
             hipes = hipes,
             current_page = 'user')
 
-@app.route('/follow/<nickname>')
+@app.route('/follow/<username>')
 @login_required
-def follow(nickname):
-    user = User.query.filter_by(nickname=nickname).first()
+def follow(username):
+    user = User.query.filter_by(username=username).first()
     if user == None:
-        flash('User %s not found.' %nickname)
+        flash('User %s not found.' %username)
         return redirect(url_for('index'))
     if user == g.user:
         flash('Stop following yourself!')
-        return redirect(url_for('user',nickname = nickname))
+        return redirect(url_for('user',username = username))
 
     u = g.user.follow(user)
     if u is None:
-        flash('Cannot follow %s right now. Are you already following them?' %nickname)
-        return redirect(url_for('user',nickname = nickname))
+        flash('Cannot follow %s right now. Are you already following them?' %username)
+        return redirect(url_for('user',username = username))
     db.session.add(u)
     db.session.commit()
     follower_notification(user, g.user)
-    flash('You are now following %s!' %nickname)
-    return redirect(url_for('user',nickname = nickname))
+    flash('You are now following %s!' %username)
+    return redirect(url_for('user',username = username))
 
-@app.route('/unfollow/<nickname>')
+@app.route('/unfollow/<username>')
 @login_required
-def unfollow(nickname):
-    user = User.query.filter_by(nickname=nickname).first()
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
     if user == None:
-        flash('User %s not found.' %nickname)
+        flash('User %s not found.' %username)
         return redirect(url_for('index'))
     if user == g.user:
         flash('You cannot unfollow yourself.')
-        return redirect(url_for('user',nickname = nickname))
+        return redirect(url_for('user',username = username))
     u = g.user.unfollow(user)
     if u is None:
-        flash('Cannot unfollow %s right now. Are you sure you are following them?' %nickname)
-        return redirect(url_for('user',nickname = g.user.nickname))
+        flash('Cannot unfollow %s right now. Are you sure you are following them?' %username)
+        return redirect(url_for('user',username = g.user.username))
     db.session.add(u)
     db.session.commit()
-    flash('You are no longer following %s!' %nickname)
-    return redirect(url_for('user',nickname = nickname))
+    flash('You are no longer following %s!' %username)
+    return redirect(url_for('user',username = username))
 
 
 
@@ -150,16 +141,16 @@ def unfollow(nickname):
 @app.route('/edit', methods=['GET','POST'])
 @login_required
 def edit():
-    form = EditForm(g.user.nickname)
+    form = EditForm(g.user.display_name)
     if form.validate_on_submit():
-        g.user.nickname = form.nickname.data
+        g.user.display_name = form.display_name.data
         g.user.about_me = form.about_me.data
         db.session.add(g.user)
         db.session.commit()
-        flash('Thanks %s your changes were saved' %form.nickname.data)
-        return redirect(url_for('edit'))
+        flash('Thanks %s your changes were saved' %form.display_name.data)
+        return redirect(url_for('user',username = g.user.username))
     else:
-        form.nickname.data = g.user.nickname
+        form.display_name.data = g.user.display_name
         form.about_me.data = g.user.about_me
     return render_template('edit.html',form=form)
 
@@ -200,6 +191,11 @@ def answer(letters):
 @login_required
 def random():
     hipe = random_hipe() 
+    if g.user.solved.count() == len(Hipe.query.all()):
+        flash('You have solved all our HIPEs, well done!')
+        return redirect(url_for('user',username = g.user.username))
+    while g.user.has_solved(hipe):
+        hipe = random_hipe()
     return redirect(url_for('hipe',letters = hipe.letters))
 
 
@@ -209,6 +205,23 @@ def oauth_authorize(provider):
         return redirect(url_for('index'))
     oauth = OAuthSignIn.get_provider(provider)
     return oauth.authorize()
+
+@app.route('/callback/<provider>')
+def oauth_callback(provider):
+    if not current_user.is_anonymous:
+        return redirect(url_for('index'))
+    oauth = OAuthSignIn.get_provider(provider)
+    username, email,display_name = oauth.callback()
+    if email is None:
+        flash('Authentication failed')
+        return redirect(url_for('index'))
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        user = User(username = username, email = email,display_name = display_name)
+        db.session.add(user)
+        db.session.commit()
+    login_user(user,True)
+    return redirect(url_for('index'))
 
 
 

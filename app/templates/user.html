@@ -2,11 +2,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% include 'flash.html' %}
     <div class="card"> 
-        <img class="card-img-top" src = "{{user.avatar(128) }}" alt = "{{ user.nickname }}", 
+        <img class="card-img-top" src = "{{user.avatar(128) }}" alt = "{{ user.username }}", 
         <div class = "card-block">
-            <h4 class = "card-title">{{ user.nickname }}</h4>
+            <h4 class = "card-title">{{ user.username }}</h4>
             <h6 class = "card-subtitle">Last seen: {{ user.last_seen }} </h6>
             {% if user.about_me %}<p class = "card-text">{{ user.about_me }}</p> {% endif %}
             {% if user.id == g.user.id %}
@@ -29,12 +28,12 @@
 
 <ul class="pagination">
     {% if hipes.has_prev %}
-    <li class="page-item"><a class ="page-link" href="{{ url_for('user', nickname = user.nickname, page=hipes.prev_num) }}">Newer hipes</a></li>
+    <li class="page-item"><a class ="page-link" href="{{ url_for('user', username = user.username, page=hipes.prev_num) }}">Newer hipes</a></li>
     {% else %}
     <li class="page-item disabled"><a class = "page-link" href="#">Newer hipes</a></li>
     {% endif %}
     {% if hipes.has_next %}
-    <li class="page-item"><a class = "page-link" href="{{ url_for('user', nickname = user.nickname, page=hipes.next_num) }}">Older hipes</a></li>
+    <li class="page-item"><a class = "page-link" href="{{ url_for('user', username = user.username, page=hipes.next_num) }}">Older hipes</a></li>
     {% else %}
     <li class="page-item disabled"><a class = "page-link" href="#">Older hipes</a></li>
     {% endif %}

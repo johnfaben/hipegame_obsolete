@@ -1,8 +1,11 @@
 import json
 
 from rauth import OAuth1Service, OAuth2Service
+import urllib2
 from flask import current_app, url_for, request, redirect, session
 
+
+sign_in_images = {'google':"https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"}
 class OAuthSignIn(object):
     providers = None
 
@@ -11,14 +14,15 @@ class OAuthSignIn(object):
         credentials = current_app.config['OAUTH_CREDENTIALS'][provider_name]
         self.consumer_id = credentials['id']
         self.consumer_secret = credentials['secret']
-
+        self.providers = {}
+    
     def authorize(self):
         pass
 
     def callback(self):
         pass
 
-    def get_callbak_url(self):
+    def get_callback_url(self):
         return url_for('oauth_callback', provider = self.provider_name, _external=True)
 
     @classmethod
@@ -28,7 +32,7 @@ class OAuthSignIn(object):
             for provider_class in self.__subclasses__():
                 provider = provider_class()
                 self.providers[provider.provider_name] = provider
-            return self.providers[provider_name]
+        return self.providers[provider_name]
 
 class FacebookSignIn(OAuthSignIn):
     def __init__(self):
@@ -37,8 +41,8 @@ class FacebookSignIn(OAuthSignIn):
                 name = 'facebook',
                 client_id = self.consumer_id,
                 client_secret = self.consumer_secret,
-                authorize_url = 'https://graph.facebook.com/ouath/authorize',
-                access_token_url = 'https://graph.facebook.com/ouath/access_token',
+                authorize_url = 'https://graph.facebook.com/oauth/authorize',
+                access_token_url = 'https://graph.facebook.com/oauth/access_token',
                 base_url='https://graph.facebook.com/'
                 )
 
@@ -46,7 +50,7 @@ class FacebookSignIn(OAuthSignIn):
         return redirect(self.service.get_authorize_url(
             scope='email',
             response_type = 'code',
-            redirect_url=self.get_callback_url())
+            redirect_uri=self.get_callback_url())
             )
 
     def callback(self):
@@ -65,12 +69,51 @@ class FacebookSignIn(OAuthSignIn):
         me = oauth_session.get('me?fields=id,email').json()
 
         return(
-                'facebook$'+me['id'],
                 me.get('email').split('@')[0],
 
-                me.get('email')
+                me.get('email'),
+                me.get('name')
 
                 )
 
+class GoogleSignIn(OAuthSignIn):
+    def __init__(self):
+        super(GoogleSignIn, self).__init__('google')
+        googleinfo = urllib2.urlopen('https://accounts.google.com/.well-known/openid-configuration')
+        google_params = json.load(googleinfo)
+        self.service = OAuth2Service(
+                name='google',
+                client_id=self.consumer_id,
+                client_secret=self.consumer_secret,
+                authorize_url=google_params.get('authorization_endpoint'),
+                base_url=google_params.get('userinfo_endpoint'),
+                access_token_url=google_params.get('token_endpoint')
+        )
 
+    def authorize(self):
+        return redirect(self.service.get_authorize_url(
+            scope='email',
+            response_type='code',
+            redirect_uri=self.get_callback_url())
+            )
 
+    def get_signin_image(self):
+        return "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"
+
+    def callback(self):
+        if 'code' not in request.args:
+            return None, None, None
+        oauth_session = self.service.get_auth_session(
+                data={'code': request.args['code'],
+                      'grant_type': 'authorization_code',
+                      'redirect_uri': self.get_callback_url()
+                     },
+                decoder = json.loads
+        )
+        me = oauth_session.get('').json()
+        return (
+                me.get('email').split('@')[0],
+                me['email'],
+                me['name'])
+
+        
