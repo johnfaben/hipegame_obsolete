@@ -2,38 +2,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% include 'flash.html' %}
     <div class="card"> 
-        <img class="card-img-top" src = "{{user.avatar(128) }}" alt = "{{ user.nickname }}", 
+        <img class="card-img-top" src = "{{user.avatar(128) }}" alt = "{{ user.username }}", 
         <div class = "card-block">
-            <h4 class = "card-title">{{ user.nickname }}</h4>
+            <h4 class = "card-title">{{ user.username }}</h4>
             <h6 class = "card-subtitle">Last seen: {{ user.last_seen }} </h6>
             {% if user.about_me %}<p class = "card-text">{{ user.about_me }}</p> {% endif %}
-            <p>Followers: {{ user.followers.count() - 1 }} | Following: {{ user.followed.count() - 1 }} |
             {% if user.id == g.user.id %}
             <a href="{{url_for('edit')}}" class = "btn btn-primary">Edit your profile</a>
-            {% elif not g.user.is_following(user) %}
-            <a href="{{url_for('follow', nickname=user.nickname)}}" class = "btn btn-primary">Follow</a>
-        {% else %}
-            <a href="{{url_for('unfollow', nickname=user.nickname)}}" class = "btn btn-primary">Unfollow</a>
-        {% endif %}
+            {% endif %}
          </div>
-    </div>
-    {% for post in posts.items %}
-        {% include 'post.html' %}
-    {% endfor %}
+     </div>
+
+     <div class = "card">
+         <div class = "card-block">
+             <h4 class = "card-title">Here are the HIPEs you've solved</h4>
+         {% for hipe in hipes.items %}
+         <p class = "card-text">
+
+         <a href = "{{url_for('answer',letters=hipe.letters)}}">{{hipe.letters.upper()}}</a>
+         </p>
+         {% endfor %}
+     </div>
+     
 
 <ul class="pagination">
-    {% if posts.has_prev %}
-    <li class="page-item"><a class ="page-link" href="{{ url_for('user', nickname = user.nickname, page=posts.prev_num) }}">Newer posts</a></li>
+    {% if hipes.has_prev %}
+    <li class="page-item"><a class ="page-link" href="{{ url_for('user', username = user.username, page=hipes.prev_num) }}">Newer hipes</a></li>
     {% else %}
-    <li class="page-item disabled"><a class = "page-link" href="#">Newer posts</a></li>
+    <li class="page-item disabled"><a class = "page-link" href="#">Newer hipes</a></li>
     {% endif %}
-    {% if posts.has_next %}
-    <li class="page-item"><a class = "page-link" href="{{ url_for('user', nickname = user.nickname, page=posts.next_num) }}">Older posts</a></li>
+    {% if hipes.has_next %}
+    <li class="page-item"><a class = "page-link" href="{{ url_for('user', username = user.username, page=hipes.next_num) }}">Older hipes</a></li>
     {% else %}
-    <li class="page-item disabled"><a class = "page-link" href="#">Older posts</a></li>
+    <li class="page-item disabled"><a class = "page-link" href="#">Older hipes</a></li>
     {% endif %}
 </ul>
+</div>
 
 {% endblock %}

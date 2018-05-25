@@ -2,41 +2,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Hi, {{ g.user.nickname }}!</h1>
+<div class = "jumbotron">
+    <h1 class = "display-3">Hi, {{ g.user.display_name}}!</h1>
     {% include 'flash.html' %}
-    <div class="well">
-        <form class="form-horizontal" action="" method="post" name="post">
-            {{ form.hidden_tag() }}
-            <div class="control-group{% if form.post.errors %} error{% endif %}">
-                <label class="control-label" for="post">Say something:</label>
-                <div class="controls">
-                    {{ form.post(size=30, maxlength=140) }}
-                    {% for error in form.errors.post %}
-                        <span class="help-inline">[{{ error }}]</span><br>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="control-group">
-                <div class="controls">
-                    <input class="btn btn-primary" type="submit" value="Post!">
-                </div>
-            </div>
-        </form>
-    </div>
-    {% for post in posts.items %}
-        {% include 'post.html' %}
-    {% endfor %}
+    <p class ="lead">Welcome to HIPE</p>
+    <p> the game of HIPE was described by Peter Winkler in his excellent collection of mathematical puzzles</p>
 
-<ul class="pagination">
-    {% if posts.has_prev %}
-    <li class="page-item"><a class ="page-link" href="{{ url_for('index', page=posts.prev_num) }}">Newer posts</a></li>
-    {% else %}
-    <li class="page-item disabled"><a class = "page-link" href="#">Newer posts</a></li>
-    {% endif %}
-    {% if posts.has_next %}
-    <li class="page-item"><a class = "page-link" href="{{ url_for('index', page=posts.next_num) }}">Older posts</a></li>
-    {% else %}
-    <li class="page-item disabled"><a class = "page-link" href="#">Older posts</a></li>
-    {% endif %}
-</ul>
+    <p>the rules are very straightforward, you are given a string of letters, and your goal is to find an English word that contains those letters as a substring. So, for example, if the string were 'HIPE', the answer might be 'arcHIPElago'.</p>
+
+    <a class = "btn btn-primary" href="{{ url_for('random') }}">Play Hipe</a>
+</div>
 {% endblock %}

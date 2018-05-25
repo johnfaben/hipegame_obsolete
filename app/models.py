@@ -1,17 +1,31 @@
 from app import db
 from hashlib import md5
+from sqlalchemy.sql import func
+from flask.ext.login import UserMixin
+
 
 followers = db.Table('followers',
         db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
         db.Column('followed_id', db.Integer, db.ForeignKey('user.id'))
         )
 
+solvers = db.Table('solvers',
+        db.Column('solver_id', db.Integer, db.ForeignKey('user.id')),
+        db.Column('hipe_id', db.Integer, db.ForeignKey('hipe.id')),
+        db.Column('score', db.Integer)
+        )
 
-class User(db.Model):
+
+def random_hipe():
+    return Hipe.query.order_by(func.random()).first()
+
+
+class User(UserMixin,db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    nickname = db.Column(db.String(64), index=True, unique=True)
+    username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
-    posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
+    display_name = db.Column(db.String(64))
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime)
     followed = db.relationship('User',
@@ -21,17 +35,12 @@ class User(db.Model):
             backref = db.backref('followers', lazy = 'dynamic'),
             lazy='dynamic')
 
-    @property
-    def is_authenticated(self):
-        return True
+    solved = db.relationship('Hipe',
+            secondary = solvers,
+            backref = 'solvers',
+            lazy = 'dynamic'
+            )
 
-    @property
-    def is_active(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
 
     def get_id(self):
         try:
@@ -43,16 +52,28 @@ class User(db.Model):
         return 'http://www.gravatar.com/avatar/%s?d=mm&s=%d' %(md5(self.email.encode('utf-8')).hexdigest(),size)
 
     @staticmethod
-    def make_unique_nickname(nickname):
-        if User.query.filter_by(nickname=nickname).first() is None:
-            return nickname
+    def make_unique_username(username):
+        if User.query.filter_by(username=username).first() is None:
+            return username
         version = 2
         while True:
-            new_nickname = nickname + str(version)
-            if User.query.filter_by(nickname=new_nickname).first() is None:
+            new_username = username + str(version)
+            if User.query.filter_by(username=new_username).first() is None:
                 break
             version +=1
-        return new_nickname
+        return new_username
+
+    def solve(self, hipe):
+        if not self.has_solved(hipe):
+            self.solved.append(hipe)
+        return self
+
+    
+    def has_solved(self, hipe):
+        return self.solved.filter(solvers.c.hipe_id == hipe.id).count()
+
+    def solved_hipes(self):
+        return Hipe.query.join(solvers, (solvers.c.hipe_id == Hipe.id)).filter(solvers.c.solver_id == self.id)
 
     def follow(self, user):
         if not self.is_following(user):
@@ -67,26 +88,19 @@ class User(db.Model):
     def is_following(self,user):
         return self.followed.filter(followers.c.followed_id == user.id).count()
 
-    def followed_posts(self):
-        return Post.query.join(followers, (followers.c.followed_id == Post.user_id)).filter(followers.c.follower_id == self.id).order_by(Post.timestamp.desc())
-
 
     def __repr__(self):
-        return '<User %r>' %(self.nickname)
+        return '<User %r>' %(self.username)
 
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    
-    def __repr__(self):
-        return '<%r>' %self.body
 
 class Hipe(db.Model):
+    __tablename__ = 'hipe'
     id = db.Column(db.Integer, primary_key= True)
     letters = db.Column(db.String(4))
     answers = db.relationship('Answer', backref = 'hipe', lazy = 'dynamic')
+
+    def __init__(self, letters):
+        self.letters = letters
 
 
     
@@ -94,4 +108,7 @@ class Answer(db.Model):
     id = db.Column(db.Integer, primary_key= True)
     answer = db.Column(db.String(20))
     hipe_id = db.Column(db.Integer, db.ForeignKey('hipe.id'))
+
+    def __init__(self, word):
+        self.answer = word
 

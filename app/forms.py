@@ -9,22 +9,15 @@ class LoginForm(FlaskForm):
 
 
 class EditForm(FlaskForm):
-    nickname = StringField('nickname', validators=[DataRequired()])
+    display_name = StringField('username', validators=[DataRequired()])
     about_me = TextAreaField('about_me',validators=[Length(min=0,max=140)])
 
-    def __init__(self, original_nickname, *args, **kwargs):
+    def __init__(self, original_display_name, *args, **kwargs):
         FlaskForm.__init__(self, *args, **kwargs)
-        self.original_nickname = original_nickname
+        self.original_display_name= original_display_name
 
     def validate(self):
         if not FlaskForm.validate(self):
-            return False
-        if self.nickname.data == self.original_nickname:
-            return True
-        user = User.query.filter_by(nickname=self.nickname.data).first()
-        if user != None:
-            suggestion = User.make_unique_nickname(self.nickname.data)
-            self.nickname.errors.append('Sorry, the nickname %s is already in use, please choose another. You could try %s.' %(self.nickname.data,suggestion))
             return False
         return True
 
@@ -35,16 +28,15 @@ class AnswerForm(FlaskForm):
         self.hipe = hipe 
 
     def validate(self):
-        #self.answer.errors.append('Just checking if I am actually showing errors when validating')
         if not FlaskForm.validate(self):
             return False
 
         letters = self.hipe.letters
-        if letters not in self.answer.data:
+        if letters not in self.answer.data.lower():
             self.answer.errors.append('The letters %s are not in the word %s, try again.' %(letters,self.answer.data))
             return False
 
-        answer = Answer.query.filter_by(answer=self.answer.data).filter_by(hipe=self.hipe).first()
+        answer = Answer.query.filter_by(answer=self.answer.data.lower()).filter_by(hipe=self.hipe).first()
         if answer != None:
             return True 
         else: 
