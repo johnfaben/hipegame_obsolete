@@ -6,8 +6,7 @@ from .models import User,Hipe,Answer,random_hipe
 from datetime import datetime
 from flask_mail import Message
 from config import POSTS_PER_PAGE
-from email import follower_notification
-from oauth import OAuthSignIn,sign_in_images
+from app.oauth import OAuthSignIn,sign_in_images
 
 
 @lm.user_loader

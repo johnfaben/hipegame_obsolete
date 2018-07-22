@@ -1,7 +1,7 @@
 from app import db
 from hashlib import md5
 from sqlalchemy.sql import func
-from flask.ext.login import UserMixin
+from flask_login import UserMixin
 
 
 followers = db.Table('followers',

@@ -1,9 +1,9 @@
 import random as rn
 import sys
 
-num_words_to_use = 50000
+num_words_to_use = 30000
 wordlist_filename = '/Users/faben/Dropbox/Programming/anagrams/dictionary_order.txt'
-output_filename = 'list_of_hipes'+str(num_words_to_use)+'.txt'
+output_filename = 'list_of_hipes'+str(num_words_to_use)+'1.txt'
 hipe_length = 3
 max_matches_allowed = 3
 
